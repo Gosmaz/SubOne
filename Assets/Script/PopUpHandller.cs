@@ -13,9 +13,12 @@ public class PopUpHandller : MonoBehaviour
     public GameObject bgAlpha;
     public GameObject videoControlBottons;
 
-    public List<VideoClip> case1;
-    public List<VideoClip> case2;
-    public List<VideoClip> case3;
+    public List<VideoPlayer> case1;
+    public List<VideoPlayer> case2;
+    public List<VideoPlayer> case3;
+
+    public Image sideButton;
+    public Image bigButton;
 
     public VideoPlayer subVideo;
     public VideoPlayer mainVideo;
@@ -24,6 +27,7 @@ public class PopUpHandller : MonoBehaviour
 
     public Texture main;
     public Texture sub;
+    public Texture wait;
     public Texture baseMonitor;
 
 
@@ -32,6 +36,12 @@ public class PopUpHandller : MonoBehaviour
 
     Vector3 ogPos;
     Vector3 sidePos;
+
+    Sprite[] sideImages;
+    Sprite[] upSideImages;
+
+    VideoPlayer nowMain;
+    VideoPlayer nowSub;
 
     private void Start()
     {
@@ -42,6 +52,9 @@ public class PopUpHandller : MonoBehaviour
         subPlayGround.transform.localPosition = ogPos;
 
         monitor.texture = baseMonitor;
+
+        sideImages = Resources.LoadAll<Sprite>("SideButton");
+        upSideImages = Resources.LoadAll<Sprite>("UPSideButton");
     }
     public void Click(int clip)
     {
@@ -137,18 +150,23 @@ public class PopUpHandller : MonoBehaviour
 
     private void Video_Change(int code, bool videoMain)
     {
+
         if (videoMain)
         {
+            
             switch (code / 10)
             {
                 case 1:
-                    mainVideo.clip = case1[code % 10 - 1];
+                    case1[(code % 10) - 1].targetTexture = (RenderTexture)main;
+                    nowMain = case1[(code % 10) - 1];
                     break;
                 case 2:
-                    mainVideo.clip = case2[code % 10 - 1];
+                    case2[(code % 10) - 1].targetTexture = (RenderTexture)main;
+                    nowMain = case2[(code % 10) - 1];
                     break;
                 case 3:
-                    mainVideo.clip = case3[code % 10 - 1];
+                    case3[(code % 10) - 1].targetTexture = (RenderTexture)main;
+                    nowMain = case3[(code % 10) - 1];
                     break;
                 default:
                     Debug.Log(code + " 해당하는 클립이 없습니다.");
@@ -160,18 +178,88 @@ public class PopUpHandller : MonoBehaviour
             switch (code / 10)
             {
                 case 1:
-                    subVideo.clip = case1[code % 10 - 1];
+                    case1[(code % 10) - 1].targetTexture = (RenderTexture)sub;
+                    nowSub = case1[(code % 10) - 1];
                     break;
                 case 2:
-                    subVideo.clip = case2[code % 10 - 1];
+                    case2[(code % 10) - 1].targetTexture = (RenderTexture)sub;
+                    nowSub = case2[(code % 10) - 1];
                     break;
                 case 3:
-                    subVideo.clip = case3[code % 10 - 1];
+                    case3[(code % 10) - 1].targetTexture = (RenderTexture)sub;
+                    nowSub = case3[(code % 10) - 1];
                     break;
                 default:
                     Debug.Log(code + " 해당하는 클립이 없습니다.");
                     break;
             }
+        }
+
+        switch(code/10)
+        {
+            case 1:
+                sideButton.sprite = sideImages[(code % 10) - 1];
+                bigButton.sprite = upSideImages[(code % 10) - 1];
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+        }
+
+        for (int i = 0; i < case1.Count; i++)
+        {
+            if (case1[i] == nowMain || case1[i] == nowSub)
+                continue;
+            case1[i].targetTexture = (RenderTexture)wait;
+        }
+        for (int i = 0; i < case2.Count; i++)
+        {
+            if (case2[i].targetTexture == nowMain || case2[i].targetTexture == nowSub)
+                continue;
+            case2[i].targetTexture = (RenderTexture)wait;
+        }
+        for (int i = 0; i < case3.Count; i++)
+        {
+            if (case3[i].targetTexture == nowMain || case3[i].targetTexture == nowSub)
+                continue;
+            case3[i].targetTexture = (RenderTexture)wait;
+        }
+    }
+
+    public void VideoStart()
+    {
+        if(isMain)
+        {
+            nowMain.Play();
+        }
+        else
+        {
+            nowSub.Play();
+        }
+    }
+
+    public void VideoStop()
+    {
+        if (isMain)
+        {
+            nowMain.Stop();
+        }
+        else
+        {
+            nowSub.Stop();
+        }
+    }
+
+    public void VideoReset()
+    {
+        if (isMain)
+        {
+            nowMain.time = 0;
+        }
+        else
+        {
+            nowSub.time = 0;
         }
     }
 }
