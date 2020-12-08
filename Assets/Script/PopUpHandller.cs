@@ -4,6 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class PopUpHandller : MonoBehaviour
 {
@@ -17,8 +18,13 @@ public class PopUpHandller : MonoBehaviour
     public List<VideoPlayer> case2;
     public List<VideoPlayer> case3;
 
+    public List<Image> buttons_home;
+    public List<Image> buttons_UpSide;
+
     public Image sideButton;
     public Image bigButton;
+
+    public GameObject upSideBack;
 
     public VideoPlayer subVideo;
     public VideoPlayer mainVideo;
@@ -43,6 +49,10 @@ public class PopUpHandller : MonoBehaviour
     VideoPlayer nowMain;
     VideoPlayer nowSub;
 
+    Image clickingButton;
+    Image clickedButton;
+    Image clickedUpButton;
+
     private void Start()
     {
         ogPos = subPlayGround.transform.localPosition;
@@ -55,8 +65,36 @@ public class PopUpHandller : MonoBehaviour
 
         sideImages = Resources.LoadAll<Sprite>("SideButton");
         upSideImages = Resources.LoadAll<Sprite>("UPSideButton");
+
     }
     public void Click(int clip)
+    {
+        bool check = false;
+        clickingButton = EventSystem.current.currentSelectedGameObject.GetComponent<Image>();
+        for(int i=0; i < buttons_home.Count; i++)
+        {
+            if (clickingButton == buttons_home[i])
+            {
+                clickedButton = buttons_home[i];
+                clickedUpButton = buttons_UpSide[i];
+                clickedUpButton.DOColor(new Color(1, 1, 1, 0), 0.5f).OnComplete(() => upSideBack.SetActive(false));
+                clickedButton.DOColor(new Color(1, 1, 1, 0), 0.5f).OnStart(() =>
+                {
+                    clickedButton.GetComponent<Image>().DOColor(new Color(1, 1, 1, 0), 0.5f).OnComplete(() => PopUp(clip));
+                });
+                check = true;
+            }
+        }
+
+        if(!check)
+        {
+            PopUp(clip);
+        }
+
+
+    }
+
+    public void PopUp(int clip)
     {
         if (isMoving)
         {
@@ -79,10 +117,10 @@ public class PopUpHandller : MonoBehaviour
             subPlayGround.transform.DOLocalMoveY(0, 1, false).SetEase(Ease.OutBack)
                 .OnComplete(() =>
                 {
-                    
+
                     isMoving = false;
-                    
-                }).OnStart(()=>
+
+                }).OnStart(() =>
                 {
                     if (sideBar.transform.localPosition.x != 0)
                     {
@@ -100,7 +138,7 @@ public class PopUpHandller : MonoBehaviour
             monitor.texture = main;
 
             if (subPlayGround.transform.localPosition != ogPos)
-                subPlayGround.transform.DOLocalMoveY(-1200, 0.9f, false).SetEase(Ease.OutBack).OnComplete(() => subPlayGround.transform.localPosition = ogPos);
+                subPlayGround.transform.DOLocalMoveY(-1200, 0.7f, false).SetEase(Ease.OutBack).OnComplete(() => subPlayGround.transform.localPosition = ogPos);
 
             mainPlayGround.transform.DOLocalMoveY(0, 0.7f, false).SetEase(Ease.OutBack)
                 .OnComplete(() =>
@@ -118,11 +156,15 @@ public class PopUpHandller : MonoBehaviour
 
         bgAlpha.SetActive(isMoving);
         videoControlBottons.SetActive(isMoving);
-
     }
 
     public void Home()
     {
+        clickedButton.color = new Color(1,1,1,170/255f);
+
+        upSideBack.SetActive(true);
+        clickedUpButton.color = new Color(1,1,1,170/255f);
+
         if (!isMain)
         {
             mainPlayGround.transform.DOLocalMoveY(-1000, 0.5f, false)
@@ -134,26 +176,27 @@ public class PopUpHandller : MonoBehaviour
         else
         {
             subPlayGround.transform.DOLocalMoveY(-1000, 0.5f, false)
-               .OnComplete(() =>
-               {
-                   subPlayGround.transform.localPosition = ogPos;
-               });
+                .OnComplete(() =>
+                {
+                    subPlayGround.transform.localPosition = ogPos;
+                });
         }
         monitor.texture = baseMonitor;
         bgAlpha.SetActive(false);
         sideBar.DOLocalMoveX(305, 0.5f, false).SetEase(Ease.Unset).OnComplete(() => {
             isMoving = false;
             sideBar.transform.localPosition = sidePos;
-        }) ;
+        });
         
     }
 
     private void Video_Change(int code, bool videoMain)
     {
+       
 
         if (videoMain)
         {
-            
+
             switch (code / 10)
             {
                 case 1:
@@ -173,7 +216,7 @@ public class PopUpHandller : MonoBehaviour
                     break;
             }
         }
-        else 
+        else
         {
             switch (code / 10)
             {
@@ -195,7 +238,10 @@ public class PopUpHandller : MonoBehaviour
             }
         }
 
-        switch(code/10)
+        VideoReset();
+        VideoStop();
+
+        switch (code / 10)
         {
             case 1:
                 sideButton.sprite = sideImages[(code % 10) - 1];
@@ -229,7 +275,7 @@ public class PopUpHandller : MonoBehaviour
 
     public void VideoStart()
     {
-        if(isMain)
+        if(!isMain)
         {
             nowMain.Play();
         }
@@ -241,19 +287,19 @@ public class PopUpHandller : MonoBehaviour
 
     public void VideoStop()
     {
-        if (isMain)
+        if (!isMain)
         {
-            nowMain.Stop();
+            nowMain.Pause();
         }
         else
         {
-            nowSub.Stop();
+            nowSub.Pause();
         }
     }
 
     public void VideoReset()
     {
-        if (isMain)
+        if (!isMain)
         {
             nowMain.time = 0;
         }
