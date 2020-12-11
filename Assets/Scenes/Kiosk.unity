@@ -4531,8 +4531,8 @@ MonoBehaviour:
   mainVideo: {fileID: 1272416261}
   monitor: {fileID: 649383233}
   main: {fileID: 8400000, guid: 9098386624d3a8146b84835ee0205273, type: 2}
-  sub: {fileID: 8400000, guid: 53c1cb24adb4b4d4c905ec1382a6df87, type: 2}
-  wait: {fileID: 8400000, guid: 39f34e501c7926a4f9cf87997c1973a3, type: 2}
+  sub: {fileID: 8400000, guid: 78614dd55bf1f2c4faa559d5f34bb46b, type: 2}
+  wait: {fileID: 8400000, guid: 070e73c80a410a744b224728b684e8e3, type: 2}
   baseMonitor: {fileID: 2800000, guid: d345083384500334a8917014ac5b6a13, type: 3}
 --- !u!1 &1827730184
 GameObject:
@@ -4664,7 +4664,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d345083384500334a8917014ac5b6a13, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 468fcaab28f09aa429c699cb1346622c, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1

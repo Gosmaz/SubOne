@@ -112,9 +112,9 @@ public class PopUpHandller : MonoBehaviour
             monitor.texture = sub;
 
             if (mainPlayGround.transform.localPosition != ogPos)
-                mainPlayGround.transform.DOLocalMoveY(-1200, 0.9f, false).SetEase(Ease.OutBack).OnComplete(() => mainPlayGround.transform.localPosition = ogPos);
+                mainPlayGround.transform.DOLocalMoveY(-1200, 0.9f, false).SetEase(Ease.Unset).OnComplete(() => mainPlayGround.transform.localPosition = ogPos);
 
-            subPlayGround.transform.DOLocalMoveY(0, 1, false).SetEase(Ease.OutBack)
+            subPlayGround.transform.DOLocalMoveY(0, 1, false).SetEase(Ease.Unset)
                 .OnComplete(() =>
                 {
 
@@ -138,9 +138,9 @@ public class PopUpHandller : MonoBehaviour
             monitor.texture = main;
 
             if (subPlayGround.transform.localPosition != ogPos)
-                subPlayGround.transform.DOLocalMoveY(-1200, 0.7f, false).SetEase(Ease.OutBack).OnComplete(() => subPlayGround.transform.localPosition = ogPos);
+                subPlayGround.transform.DOLocalMoveY(-1200, 0.7f, false).SetEase(Ease.Unset).OnComplete(() => subPlayGround.transform.localPosition = ogPos);
 
-            mainPlayGround.transform.DOLocalMoveY(0, 0.7f, false).SetEase(Ease.OutBack)
+            mainPlayGround.transform.DOLocalMoveY(0, 0.7f, false).SetEase(Ease.Unset)
                 .OnComplete(() =>
                 {
                     isMoving = false;
@@ -196,6 +196,7 @@ public class PopUpHandller : MonoBehaviour
 
         if (videoMain)
         {
+            nowSub.targetTexture.Release();
 
             switch (code / 10)
             {
@@ -218,6 +219,7 @@ public class PopUpHandller : MonoBehaviour
         }
         else
         {
+            nowMain.targetTexture.Release();
             switch (code / 10)
             {
                 case 1:
