@@ -13,6 +13,12 @@ public class PopUpHandlerUnion : MonoBehaviour
     public GameObject subPop;
     public GameObject multiPop; // 장비 성능창
 
+    [Header("팝업창 이미지")]
+    public Image monitorDisplay;
+    public Image mainPopDisplay1;
+    public Image subPopDisplay2;
+    public Image multiPopDisplay3;
+
     [Header("비디오 컨트롤 버튼")]
     public GameObject VideoControlButtons; //비디오 컨드롤 버튼들
 
@@ -31,16 +37,31 @@ public class PopUpHandlerUnion : MonoBehaviour
     public Image[] bigButtons; // 큰 화면의 버튼들
 
     [Header("비디오 플레이어")]
-    public List<VideoPlayer> VideoPlayers;
+    public List<VideoPlayer> VideoPlayers1;
+    public List<VideoPlayer> VideoPlayers2;
+    public List<VideoPlayer> VideoPlayers3;
+
+    [Header("모니터 디스플레이")]
+    public RawImage monitorScreen;
 
     GameObject movedPop;
+
+    VideoPlayer nowVideoPlayer;
 
     RawImage mainVideo;
     RawImage subVideo;
 
+    Sprite[] sideImage1; //사이드 버튼 이미지
+    Sprite[] bigDisplay; //위의 화면 이미지
+    Sprite[] littleDisplay;
+
+
     Image clickedButton;
 
     Vector3 waitPos;
+
+    string caseState = "배경화면";
+    int caseLevel = 0;
 
     float popDownTime = 0.7f;
 
@@ -55,15 +76,46 @@ public class PopUpHandlerUnion : MonoBehaviour
         subPop.transform.localPosition = waitPos;
         multiPop.transform.localPosition = waitPos;
 
-        for(int i = 0; i < VideoPlayers.Count; i++)
+        for(int i = 0; i < VideoPlayers1.Count; i++)
         {
-            VideoPlayers[i].Prepare();
-            VideoPlayers[i].Pause();
+            VideoPlayers1[i].Prepare();
+            VideoPlayers1[i].Pause();
         }
+        for (int i = 0; i < VideoPlayers2.Count; i++)
+        {
+            VideoPlayers2[i].Prepare();
+            VideoPlayers2[i].Pause();
+        }
+        for (int i = 0; i < VideoPlayers3.Count; i++)
+        {
+            VideoPlayers3[i].Prepare();
+            VideoPlayers3[i].Pause();
+        }
+
+        sideImage1 = Resources.LoadAll<Sprite>("SideButtonImages");
+        bigDisplay = Resources.LoadAll<Sprite>("BigDisplay");
+        littleDisplay = Resources.LoadAll<Sprite>("PopDisplay");
     }
 
     public void Click(int num)
     {
+        if(isMove)
+        {
+            return;
+        }
+
+        if(num == 7)
+        {
+            ChangeCase1();
+            num = 1;
+        }
+        else if(num == 8)
+        {
+            ChangeCase2();
+            num = 1;
+        }
+
+        isMove = true;
         bool same = false;
         clickedButton = EventSystem.current.currentSelectedGameObject.GetComponent<Image>(); // 클릭된 버튼의 이미지 가져오기
 
@@ -81,6 +133,7 @@ public class PopUpHandlerUnion : MonoBehaviour
                     })
                     .OnComplete(() =>
                     {
+                        isMove = false;
                         PopUp(buttonNum);
                     });
             }
@@ -101,18 +154,35 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         buttonNum = num;
 
+        isMove = true;
+        isMainTurn = !isMainTurn;
+
         bgAlpha.SetActive(true);
         VideoControlButtons.SetActive(true);
         bigButtonBackGround.gameObject.SetActive(false);
 
         sideMenu.transform.DOLocalMoveX(0, 1);
 
-        switch (buttonBackGround.sprite.name)
+        sideMenu.GetComponent<Image>().sprite = sideImage1[buttonNum - 1];
+
+        monitorDisplay.sprite = bigDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+        if(nowVideoPlayer != null)
+        {
+            VideoReset();
+        }
+
+        //switch (buttonBackGround.sprite.name)
+        switch (caseState)
         {
             case "배경화면":
 
+                nowVideoPlayer = VideoPlayers1[buttonNum - 1];
+
                 if (buttonNum == 2) // 멀티동영상 차례일때
                 {
+                    multiPopDisplay3.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
                     if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
                     {
                         mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
@@ -122,12 +192,14 @@ public class PopUpHandlerUnion : MonoBehaviour
                         subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
                     }
 
-                    multiPop.transform.DOLocalMoveY(0, 1); //해당하는 창 옮기기
+                    multiPop.transform.DOLocalMoveY(0, 1).OnComplete(()=>isMove=false); //해당하는 창 옮기기
 
                     movedPop = multiPop;
                 }
                 else if (isMainTurn) //메인창의 차례일때
                 {
+                    mainPopDisplay1.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
                     if (multiPop.transform.localPosition != waitPos)
                     {
                         multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
@@ -137,17 +209,18 @@ public class PopUpHandlerUnion : MonoBehaviour
                         subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
                     }
 
-                    mainPop.transform.DOLocalMoveY(0, 1);
+                    mainPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
 
                     mainVideo = mainPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
-                    Debug.Log(mainVideo.name);
-                    mainVideo.texture = VideoPlayers[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
-                    Debug.Log(mainVideo.texture.name);
+                    mainVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
 
                     movedPop = mainPop;
                 }
                 else // 서브창의 차례일때
                 {
+                    subPopDisplay2.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
                     if (mainPop.transform.localPosition != waitPos)
                     {
                         mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos);
@@ -157,10 +230,141 @@ public class PopUpHandlerUnion : MonoBehaviour
                         multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
                     }
 
-                    subPop.transform.DOLocalMoveY(0, 1);
+                    subPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
 
-                    subVideo = mainPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
-                    subVideo.texture = VideoPlayers[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    subVideo = subPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
+                    subVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
+
+                    movedPop = subPop;
+                }
+                break;
+
+            case "배경화면1": // Case1
+
+                nowVideoPlayer = VideoPlayers2[buttonNum - 1];
+
+                if (buttonNum == 2) // 멀티동영상 차례일때
+                {
+                    multiPopDisplay3.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
+                    {
+                        mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
+                    }
+                    if (subPop.transform.localPosition != waitPos)
+                    {
+                        subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                    }
+
+                    multiPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false); //해당하는 창 옮기기
+
+                    movedPop = multiPop;
+                }
+                else if (isMainTurn) //메인창의 차례일때
+                {
+                    mainPopDisplay1.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (multiPop.transform.localPosition != waitPos)
+                    {
+                        multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                    }
+                    if (subPop.transform.localPosition != waitPos)
+                    {
+                        subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                    }
+
+                    mainPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
+
+                    mainVideo = mainPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
+                    mainVideo.texture = VideoPlayers2[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers2[buttonNum - 1].texture;
+
+                    movedPop = mainPop;
+                }
+                else // 서브창의 차례일때
+                {
+                    subPopDisplay2.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (mainPop.transform.localPosition != waitPos)
+                    {
+                        mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos);
+                    }
+                    if (multiPop.transform.localPosition != waitPos)
+                    {
+                        multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                    }
+
+                    subPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
+
+                    subVideo = subPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
+                    subVideo.texture = VideoPlayers2[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers2[buttonNum - 1].texture;
+
+                    movedPop = subPop;
+                }
+                break;
+
+            case "배경화면2": //Case2
+
+                nowVideoPlayer = VideoPlayers3[buttonNum - 1];
+
+                if (buttonNum == 2) // 멀티동영상 차례일때
+                {
+                    multiPopDisplay3.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
+                    {
+                        mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
+                    }
+                    if (subPop.transform.localPosition != waitPos)
+                    {
+                        subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                    }
+
+                    multiPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false); //해당하는 창 옮기기
+
+                    movedPop = multiPop;
+                }
+                else if (isMainTurn) //메인창의 차례일때
+                {
+                    mainPopDisplay1.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (multiPop.transform.localPosition != waitPos)
+                    {
+                        multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                    }
+                    if (subPop.transform.localPosition != waitPos)
+                    {
+                        subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                    }
+
+                    mainPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
+
+                    mainVideo = mainPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
+                    mainVideo.texture = VideoPlayers3[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers3[buttonNum - 1].texture;
+
+                    movedPop = mainPop;
+                }
+                else // 서브창의 차례일때
+                {
+                    subPopDisplay2.sprite = littleDisplay[buttonNum - 1 + (6 * caseLevel)];
+
+                    if (mainPop.transform.localPosition != waitPos)
+                    {
+                        mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos);
+                    }
+                    if (multiPop.transform.localPosition != waitPos)
+                    {
+                        multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                    }
+
+                    subPop.transform.DOLocalMoveY(0, 1).OnComplete(() => isMove = false);
+
+                    subVideo = subPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
+                    subVideo.texture = VideoPlayers3[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+                    monitorScreen.texture = VideoPlayers3[buttonNum - 1].texture;
 
                     movedPop = subPop;
                 }
@@ -171,6 +375,9 @@ public class PopUpHandlerUnion : MonoBehaviour
     public void Home()
     {
         isMove = true;
+
+        caseState = "배경화면";
+        caseLevel = 0;
 
         movedPop.transform.DOLocalMoveY(-1200, popDownTime)
             .OnComplete(() => 
@@ -193,17 +400,30 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     public void Play()
     {
-        VideoPlayers[buttonNum - 1].Play();
+        nowVideoPlayer.Play();
     }
 
     public void Pause()
     {
-        VideoPlayers[buttonNum - 1].Pause();
+        nowVideoPlayer.Pause();
     }
 
     public void VideoReset()
     {
-        VideoPlayers[buttonNum - 1].Pause();
-        VideoPlayers[buttonNum - 1].time = 0;
+        nowVideoPlayer.Pause();
+        nowVideoPlayer.time = 0;
+    }
+
+    public void ChangeCase1()
+    {
+        caseState = "배경화면1";
+        caseLevel = 1;
+
+    }
+
+    public void ChangeCase2()
+    {
+        caseState = "배경화면2";
+        caseLevel = 2;
     }
 }
