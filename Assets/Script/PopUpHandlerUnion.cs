@@ -13,7 +13,6 @@ public class PopUpHandlerUnion : MonoBehaviour
     public GameObject mainPop;
     public GameObject subPop;
     public GameObject multiPop; // 장비 성능창(2번)
-    public GameObject specialPop; //7, 8번 영상 창
 
     [Header("팝업창 이미지")]
     public Image monitorDisplay;
@@ -22,7 +21,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     public Image multiPopDisplay3;
 
     [Header("비디오 컨트롤 버튼")]
-    public GameObject VideoControlButtons; //비디오 컨드롤 버튼들
+    public List<GameObject> VideoControlButtons; //비디오 컨드롤 버튼들
 
     [Header("사이드 버튼")]
     public RectTransform sideMenu; // 사이드 버튼
@@ -40,9 +39,15 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     [Header("비디오 플레이어")]
     public List<VideoPlayer> VideoPlayers1;
+    public List<VideoPlayer> multiVideos;
 
     [Header("모니터 디스플레이")]
     public RawImage monitorScreen;
+
+    [Header("멀티 비디오 버튼")]
+    public Image changeButtonImage;
+    public GameObject changeButton;
+    public GameObject multiVideoControlButton;
 
     GameObject movedPop;
 
@@ -51,23 +56,25 @@ public class PopUpHandlerUnion : MonoBehaviour
     RawImage mainVideo;
     RawImage subVideo;
     RawImage multiVideo;
-    RawImage specialVideo;
 
     Sprite[] sideImage1; //사이드 버튼 이미지
     Sprite[] bigDisplay; //위의 화면 이미지
     Sprite[] littleDisplay;
+    Sprite[] multiButtonImages;
 
 
     Image clickedButton;
 
     Vector3 waitPos;
 
-    float popDownTime = 0.7f;
+    const float popDownTime = 0.7f;
+    readonly int[] multiButtonX = new int[] {0, 0, 510, 430 ,350};
 
     bool isMainTurn = true;
     bool isMove = false;
 
     int buttonNum;
+
 
     private void OnApplicationQuit()
     {
@@ -75,6 +82,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     private void Awake()
     {
+        bool isWorking = false;
         System.GC.Collect();
 
         for (int i = 0; i < VideoPlayers1.Count; i++)
@@ -82,6 +90,32 @@ public class PopUpHandlerUnion : MonoBehaviour
             VideoPlayers1[i].url = "D:/VideoSource/mp4/1_" + (i + 1).ToString() + ".mp4";
             VideoPlayers1[i].Prepare();
             VideoPlayers1[i].Pause();
+            VideoPlayers1[i].frame = 25;
+        }
+        for(int i = 0; i < multiVideos.Count; i++)
+        {
+            string address = "D:/VideoSource/test/1_" + (i + 1).ToString() + ".mp4";
+            FileInfo fi = new FileInfo(address);
+            if (fi.Exists)
+            {
+                multiVideos[i].url = address;
+                multiVideos[i].Prepare();
+                multiVideos[i].Pause();
+                multiVideos[i].frame = 25;
+            }
+            else
+            {
+                if(!isWorking)
+                {
+                    changeButton.transform.localPosition = new Vector3(multiButtonX[i], changeButton.transform.localPosition.y, changeButton.transform.localPosition.z);
+                    isWorking = true;
+
+                    if(i < 2)
+                    {
+                        changeButton.SetActive(false);
+                    }
+                }
+            }
         }
     }
 
@@ -94,6 +128,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         sideImage1 = Resources.LoadAll<Sprite>("SideButtonImages");
         bigDisplay = Resources.LoadAll<Sprite>("BigDisplay");
         littleDisplay = Resources.LoadAll<Sprite>("PopDisplay");
+        multiButtonImages = Resources.LoadAll<Sprite>("MultiButtonImages");
     }
 
     public void Click(int num)
@@ -148,12 +183,9 @@ public class PopUpHandlerUnion : MonoBehaviour
         bgAlpha.SetActive(true);
         bigButtonBackGround.gameObject.SetActive(false);
 
-        if (buttonNum < 7)
-        {
-            sideMenu.transform.DOLocalMoveX(0, 1);
+        sideMenu.transform.DOLocalMoveX(0, 1);
 
-             sideMenu.GetComponent<Image>().sprite = sideImage1[buttonNum - 1];
-        }
+        sideMenu.GetComponent<Image>().sprite = sideImage1[buttonNum - 1];
 
         monitorDisplay.sprite = bigDisplay[buttonNum - 1];
 
@@ -164,32 +196,11 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
-        if(buttonNum == 7 || buttonNum == 8)
+       
+        if (buttonNum == 2) // 멀티동영상 차례일때(미완성)
         {
-            if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
-            {
-                mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
-            }
-            else if (subPop.transform.localPosition != waitPos)
-            {
-                subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
-            }
-            else if (multiPop.transform.localPosition != waitPos)
-            {
-                multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
-            }
-
-            specialPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting());
-
-            specialVideo = specialPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
-            specialVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
-            monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
-
-            movedPop = specialPop;
-
-        }
-        else if (buttonNum == 2) // 멀티동영상 차례일때(미완성)
-        {
+            nowVideoPlayer = multiVideos[0];
+            changeButtonImage.sprite = multiButtonImages[0];
             multiPopDisplay3.sprite = littleDisplay[buttonNum - 1];
 
             if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
@@ -200,16 +211,12 @@ public class PopUpHandlerUnion : MonoBehaviour
             {
                 subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
             }
-            else if (specialPop.transform.localPosition != waitPos)
-            {
-                specialPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => specialPop.transform.localPosition = waitPos);
-            }
 
             multiPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting()); //해당하는 창 옮기기
 
             multiVideo = multiPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
-            multiVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
-            monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
+            multiVideo.texture = multiVideos[0].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
+            monitorScreen.texture = multiVideos[0].texture;
 
             movedPop = multiPop;
         }
@@ -224,10 +231,6 @@ public class PopUpHandlerUnion : MonoBehaviour
             else if (subPop.transform.localPosition != waitPos)
             {
                 subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
-            }
-            else if (specialPop.transform.localPosition != waitPos)
-            {
-                specialPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => specialPop.transform.localPosition = waitPos);
             }
 
             mainPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting());
@@ -249,10 +252,6 @@ public class PopUpHandlerUnion : MonoBehaviour
             if (multiPop.transform.localPosition != waitPos)
             {
                 multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
-            }
-            else if (specialPop.transform.localPosition != waitPos)
-            {
-                specialPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => specialPop.transform.localPosition = waitPos);
             }
 
             subPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting());
@@ -280,8 +279,11 @@ public class PopUpHandlerUnion : MonoBehaviour
                 bgAlpha.SetActive(false);
             });
 
-        VideoControlButtons.SetActive(false); // 비디오 컨트롤창 끄기
-        bigButtonBackGround.gameObject.SetActive(true); //위 화면 버튼창 키기
+        for (int i = 0; i < VideoControlButtons.Count; i++)
+        {
+            VideoControlButtons[i].SetActive(false); // 비디오 컨트롤창 끄기
+        }
+        bigButtonBackGround.gameObject.SetActive(true); //위 화면 버튼 대기창 키기
         sideMenu.transform.DOLocalMoveX(305, 0.5f); // 사이드 버튼 끄기
 
         for (int i = 0; i < littleButtons.Length; i++)
@@ -294,7 +296,10 @@ public class PopUpHandlerUnion : MonoBehaviour
     private void OnCompleteSetting()
     {
         isMove = false;
-        VideoControlButtons.SetActive(true);
+        for (int i = 0; i < VideoControlButtons.Count; i++)
+        {
+            VideoControlButtons[i].SetActive(true); // 비디오 컨트롤창 끄기
+        }
 
     }
 
@@ -312,5 +317,14 @@ public class PopUpHandlerUnion : MonoBehaviour
     {
         nowVideoPlayer.Pause();
         nowVideoPlayer.frame = 25;
+    }
+
+    public void VideoCase(int num)
+    {
+        VideoReset();
+        nowVideoPlayer = multiVideos[num - 1];
+        multiVideo.texture = multiVideos[num - 1].texture;
+        monitorScreen.texture = multiVideos[num - 1].texture;
+        changeButtonImage.sprite = multiButtonImages[num - 1];
     }
 }
