@@ -39,15 +39,17 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     [Header("비디오 플레이어")]
     public List<VideoPlayer> VideoPlayers1;
-    public List<VideoPlayer> multiVideos;
 
     [Header("모니터 디스플레이")]
     public RawImage monitorScreen;
 
-    [Header("멀티 비디오 버튼")]
-    public Image changeButtonImage;
-    public GameObject changeButton;
-    public GameObject multiVideoControlButton;
+    [Header("미니 팝")]
+    public Image multiPopImage;
+    public Image miniPopImage;
+    public GameObject miniPopButtons;
+    public List<Button> miniBackButton;
+    public Image monitorMultiPopImage;
+    public Image monitorMiniPopImage;
 
     GameObject movedPop;
 
@@ -60,7 +62,8 @@ public class PopUpHandlerUnion : MonoBehaviour
     Sprite[] sideImage1; //사이드 버튼 이미지
     Sprite[] bigDisplay; //위의 화면 이미지
     Sprite[] littleDisplay;
-    Sprite[] multiButtonImages;
+    Sprite[] MiniPopImages;
+    Sprite[] multiPopImages;
 
 
     Image clickedButton;
@@ -82,40 +85,18 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     private void Awake()
     {
-        bool isWorking = false;
         System.GC.Collect();
 
         for (int i = 0; i < VideoPlayers1.Count; i++)
         {
-            VideoPlayers1[i].url = "D:/VideoSource/mp4/1_" + (i + 1).ToString() + ".mp4";
+            if(i == 1)
+            {
+                continue;
+            }
+            VideoPlayers1[i].url = "C:/VideoSource/" + (i + 1).ToString() + ".mp4";
             VideoPlayers1[i].Prepare();
             VideoPlayers1[i].Pause();
             VideoPlayers1[i].frame = 25;
-        }
-        for(int i = 0; i < multiVideos.Count; i++)
-        {
-            string address = "D:/VideoSource/test/1_" + (i + 1).ToString() + ".mp4";
-            FileInfo fi = new FileInfo(address);
-            if (fi.Exists)
-            {
-                multiVideos[i].url = address;
-                multiVideos[i].Prepare();
-                multiVideos[i].Pause();
-                multiVideos[i].frame = 25;
-            }
-            else
-            {
-                if(!isWorking)
-                {
-                    changeButton.transform.localPosition = new Vector3(multiButtonX[i], changeButton.transform.localPosition.y, changeButton.transform.localPosition.z);
-                    isWorking = true;
-
-                    if(i < 2)
-                    {
-                        changeButton.SetActive(false);
-                    }
-                }
-            }
         }
     }
 
@@ -128,7 +109,16 @@ public class PopUpHandlerUnion : MonoBehaviour
         sideImage1 = Resources.LoadAll<Sprite>("SideButtonImages");
         bigDisplay = Resources.LoadAll<Sprite>("BigDisplay");
         littleDisplay = Resources.LoadAll<Sprite>("PopDisplay");
-        multiButtonImages = Resources.LoadAll<Sprite>("MultiButtonImages");
+        MiniPopImages = Resources.LoadAll<Sprite>("MultiMiniPopImages");
+        multiPopImages = Resources.LoadAll<Sprite>("MultiPopImages");
+
+
+        for (int i = 0; i < miniBackButton.Count; i++)
+        {
+            miniBackButton[i].gameObject.SetActive(false);
+        }
+        monitorMultiPopImage.gameObject.SetActive(false);
+        monitorMiniPopImage.gameObject.SetActive(false);
     }
 
     public void Click(int num)
@@ -149,11 +139,8 @@ public class PopUpHandlerUnion : MonoBehaviour
             if (clickedButton.name == littleButtons[i].name) // 만약 클릭한 버튼이 버튼 리스트에 있는 버튼이라면
             {
                 same = true;
+                bigButtons[i].DOColor(new Color(1, 1, 1, 0), 0.5f);
                 littleButtons[i].DOColor(new Color(1, 1, 1, 0), 0.5f) // 0.5초동안 버튼을 밝게 만들기
-                    .OnStart(() =>
-                    {
-                        bigButtons[i].DOColor(new Color(1, 1, 1, 0), 0.5f);
-                    })
                     .OnComplete(() =>
                     {
                         isMove = false;
@@ -182,6 +169,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         bgAlpha.SetActive(true);
         bigButtonBackGround.gameObject.SetActive(false);
+        monitorMultiPopImage.gameObject.SetActive(false);
 
         sideMenu.transform.DOLocalMoveX(0, 1);
 
@@ -199,9 +187,15 @@ public class PopUpHandlerUnion : MonoBehaviour
        
         if (buttonNum == 2) // 멀티동영상 차례일때(미완성)
         {
-            nowVideoPlayer = multiVideos[0];
-            changeButtonImage.sprite = multiButtonImages[0];
             multiPopDisplay3.sprite = littleDisplay[buttonNum - 1];
+
+            miniPopButtons.SetActive(true);
+            miniPopImage.gameObject.SetActive(false);
+            monitorMultiPopImage.gameObject.SetActive(true);
+            monitorMiniPopImage.gameObject.SetActive(false);
+
+            multiPopImage.sprite = multiPopImages[0];
+            monitorMultiPopImage.sprite = multiPopImages[0];
 
             if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
             {
@@ -213,10 +207,6 @@ public class PopUpHandlerUnion : MonoBehaviour
             }
 
             multiPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting()); //해당하는 창 옮기기
-
-            multiVideo = multiPop.transform.Find("Video").GetComponent<RawImage>(); // Video 자식 오브젝트 가져오기
-            multiVideo.texture = multiVideos[0].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
-            monitorScreen.texture = multiVideos[0].texture;
 
             movedPop = multiPop;
         }
@@ -291,6 +281,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             littleButtons[i].color = new Color(1, 1, 1, 170 / 255f); // 모든 버튼 색 초기화
             bigButtons[i].color = new Color(1, 1, 1, 170 / 255f);
         }
+
     }
 
     private void OnCompleteSetting()
@@ -298,7 +289,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         isMove = false;
         for (int i = 0; i < VideoControlButtons.Count; i++)
         {
-            VideoControlButtons[i].SetActive(true); // 비디오 컨트롤창 끄기
+            VideoControlButtons[i].SetActive(true); // 비디오 컨트롤창 켜기
         }
 
     }
@@ -319,12 +310,48 @@ public class PopUpHandlerUnion : MonoBehaviour
         nowVideoPlayer.frame = 25;
     }
 
-    public void VideoCase(int num)
+    public void MiniPopUp(int num)
     {
-        VideoReset();
-        nowVideoPlayer = multiVideos[num - 1];
-        multiVideo.texture = multiVideos[num - 1].texture;
-        monitorScreen.texture = multiVideos[num - 1].texture;
-        changeButtonImage.sprite = multiButtonImages[num - 1];
+        switch(num)
+        {
+            case 2:  //1개
+            case 3:
+            case 4:
+                miniBackButton[0].gameObject.SetActive(true);
+                break;
+            case 1:  //2개
+            case 6:
+                miniBackButton[1].gameObject.SetActive(true);
+                break;
+            case 7:  //3개
+                miniBackButton[2].gameObject.SetActive(true);
+                break;
+            case 5:  //4개
+                miniBackButton[3].gameObject.SetActive(true);
+                break;
+        }
+
+        miniPopButtons.SetActive(false);
+        miniPopImage.gameObject.SetActive(true);
+        miniPopImage.sprite = MiniPopImages[num - 1];
+        multiPopImage.sprite = multiPopImages[num];
+
+
+        monitorMiniPopImage.gameObject.SetActive(true);
+        monitorMiniPopImage.sprite = MiniPopImages[num - 1];
+        monitorMultiPopImage.sprite = multiPopImages[num];
+    }
+    public void MiniBack()
+    {
+        for(int i = 0; i < miniBackButton.Count; i++)
+        {
+            miniBackButton[i].gameObject.SetActive(false);
+        }
+        multiPopImage.sprite = multiPopImages[0];
+        miniPopImage.gameObject.SetActive(false);
+        miniPopButtons.SetActive(true);
+
+        monitorMultiPopImage.sprite = multiPopImages[0];
+        monitorMiniPopImage.gameObject.SetActive(false);
     }
 }
