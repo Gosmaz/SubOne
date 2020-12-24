@@ -22,6 +22,8 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     [Header("비디오 컨트롤 버튼")]
     public List<GameObject> VideoControlButtons; //비디오 컨드롤 버튼들
+    public GameObject mainVideoChangeImage;
+    public GameObject subVideoChangeImage;
 
     [Header("사이드 버튼")]
     public RectTransform sideMenu; // 사이드 버튼
@@ -65,13 +67,17 @@ public class PopUpHandlerUnion : MonoBehaviour
     Sprite[] MiniPopImages;
     Sprite[] multiPopImages;
 
+    int[] videoMaxCount = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int[] videoCount = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+    string[] folders = { "01_CoustomerEnvironmentAnalysis", "02_StatusOfEquipment", "03_ConceptualDesign", "04_VirtualSimulation", "05_DetailModeling", "06_Test&Verification", "07_PaperCorrugatedCardboard", "08_EPSPacking" };
 
     Image clickedButton;
 
     Vector3 waitPos;
 
     const float popDownTime = 0.7f;
-    readonly int[] multiButtonX = new int[] {0, 0, 510, 430 ,350};
+    readonly int[] multiVideoButtonX = new int[] {0, 0, 510, 430 ,350};
 
     bool isMainTurn = true;
     bool isMove = false;
@@ -85,19 +91,35 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     private void Awake()
     {
-        System.GC.Collect();
-
         for (int i = 0; i < VideoPlayers1.Count; i++)
         {
             if(i == 1)
             {
                 continue;
             }
-            VideoPlayers1[i].url = "C:/VideoSource/" + (i + 1).ToString() + ".mp4";
+
+
+            VideoPlayers1[i].url = "C:/VideoSource/"+folders[i]+"/0" + (i + 1).ToString() + "_01.mp4";
             VideoPlayers1[i].Prepare();
             VideoPlayers1[i].Pause();
             VideoPlayers1[i].frame = 25;
         }
+
+        for(int i = 0; i < VideoPlayers1.Count; i++)
+        {
+            for(int j = 1; j <= 4; j++)
+            {
+                if(!File.Exists("C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_0"+j.ToString()+".mp4"))
+                {
+                    Debug.Log(j - 1);
+                    videoMaxCount[i] = j - 1;
+                    break;
+                }
+
+            }
+        }
+
+
     }
 
     void Start()
@@ -182,10 +204,17 @@ public class PopUpHandlerUnion : MonoBehaviour
             VideoReset();
         }
 
+        if(VideoPlayers1[buttonNum - 1].url != "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4" && buttonNum != 2)
+        {
+            VideoPlayers1[buttonNum - 1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4";
+            VideoPlayers1[buttonNum - 1].Prepare();
+            VideoPlayers1[buttonNum - 1].frame = 25;
+        }
+
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
        
-        if (buttonNum == 2) // 멀티동영상 차례일때(미완성)
+        if (buttonNum == 2) // 멀티동영상 차례일때
         {
             multiPopDisplay3.sprite = littleDisplay[buttonNum - 1];
 
@@ -213,6 +242,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         else if (isMainTurn) //메인창의 차례일때
         {
             mainPopDisplay1.sprite = littleDisplay[buttonNum - 1];
+
 
             if (multiPop.transform.localPosition != waitPos)
             {
@@ -353,5 +383,13 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         monitorMultiPopImage.sprite = multiPopImages[0];
         monitorMiniPopImage.gameObject.SetActive(false);
+    }
+
+    public void VideoChange(int num)
+    {
+        nowVideoPlayer.url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + (buttonNum).ToString() + "_0" + num.ToString() + ".mp4";
+        nowVideoPlayer.Prepare();
+        nowVideoPlayer.frame = 25;
+        nowVideoPlayer.Play();
     }
 }
