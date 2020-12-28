@@ -41,6 +41,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     [Header("비디오 플레이어")]
     public List<VideoPlayer> VideoPlayers1;
+    public List<VideoPlayer> tempVideoPlayer;
 
     [Header("모니터 디스플레이")]
     public RawImage monitorScreen;
@@ -60,6 +61,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     RawImage mainVideo;
     RawImage subVideo;
     RawImage multiVideo;
+    RawImage nowVideo;
 
     Sprite[] sideImage1; //사이드 버튼 이미지
     Sprite[] bigDisplay; //위의 화면 이미지
@@ -77,13 +79,12 @@ public class PopUpHandlerUnion : MonoBehaviour
     Vector3 waitPos;
 
     const float popDownTime = 0.7f;
-    readonly int[] multiVideoButtonX = new int[] {0, 0, 510, 430 ,350};
+    readonly int[] multiVideoButtonX = new int[] { 0, 0, 510, 430, 350 };
 
     bool isMainTurn = true;
     bool isMove = false;
 
     int buttonNum;
-
 
     private void OnApplicationQuit()
     {
@@ -93,23 +94,23 @@ public class PopUpHandlerUnion : MonoBehaviour
     {
         for (int i = 0; i < VideoPlayers1.Count; i++)
         {
-            if(i == 1)
+            if (i == 1)
             {
                 continue;
             }
 
 
-            VideoPlayers1[i].url = "C:/VideoSource/"+folders[i]+"/0" + (i + 1).ToString() + "_01.mp4";
+            VideoPlayers1[i].url = "C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_01.mp4";
             VideoPlayers1[i].Prepare();
             VideoPlayers1[i].Pause();
             VideoPlayers1[i].frame = 25;
         }
 
-        for(int i = 0; i < VideoPlayers1.Count; i++)
+        for (int i = 0; i < VideoPlayers1.Count; i++)
         {
-            for(int j = 1; j <= 4; j++)
+            for (int j = 1; j <= 4; j++)
             {
-                if(!File.Exists("C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_0"+j.ToString()+".mp4"))
+                if (!File.Exists("C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_0" + j.ToString() + ".mp4"))
                 {
                     Debug.Log(j - 1);
                     videoMaxCount[i] = j - 1;
@@ -141,6 +142,8 @@ public class PopUpHandlerUnion : MonoBehaviour
         }
         monitorMultiPopImage.gameObject.SetActive(false);
         monitorMiniPopImage.gameObject.SetActive(false);
+
+        test =PrepareSetting();
     }
 
     public void Click(int num)
@@ -177,6 +180,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         }
     }
 
+    IEnumerator test;
     public void PopUp(int num)
     {
         if (isMove)
@@ -204,7 +208,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             VideoReset();
         }
 
-        if(VideoPlayers1[buttonNum - 1].url != "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4" && buttonNum != 2)
+        if (VideoPlayers1[buttonNum - 1].url != "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4" && buttonNum != 2)
         {
             VideoPlayers1[buttonNum - 1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4";
             VideoPlayers1[buttonNum - 1].Prepare();
@@ -213,7 +217,9 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
-       
+        StopCoroutine(test);
+        StartCoroutine(test);
+
         if (buttonNum == 2) // 멀티동영상 차례일때
         {
             multiPopDisplay3.sprite = littleDisplay[buttonNum - 1];
@@ -259,6 +265,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             mainVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
             monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
 
+            nowVideo = mainVideo;
             movedPop = mainPop;
         }
         else // 서브창의 차례일때
@@ -280,6 +287,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             subVideo.texture = VideoPlayers1[buttonNum - 1].texture; //Video의 자식 오브젝트 텍스쳐 바꾸기
             monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
 
+            nowVideo = subVideo;
             movedPop = subPop;
         }
 
@@ -304,7 +312,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             VideoControlButtons[i].SetActive(false); // 비디오 컨트롤창 끄기
         }
         bigButtonBackGround.gameObject.SetActive(true); //위 화면 버튼 대기창 키기
-        sideMenu.transform.DOLocalMoveX(305, 0.5f); // 사이드 버튼 끄기
+        sideMenu.transform.DOLocalMoveX(707, 0.5f); // 사이드 버튼 끄기
 
         for (int i = 0; i < littleButtons.Length; i++)
         {
@@ -342,7 +350,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     public void MiniPopUp(int num)
     {
-        switch(num)
+        switch (num)
         {
             case 2:  //1개
             case 3:
@@ -373,7 +381,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     public void MiniBack()
     {
-        for(int i = 0; i < miniBackButton.Count; i++)
+        for (int i = 0; i < miniBackButton.Count; i++)
         {
             miniBackButton[i].gameObject.SetActive(false);
         }
@@ -387,9 +395,59 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     public void VideoChange(int num)
     {
-        nowVideoPlayer.url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + (buttonNum).ToString() + "_0" + num.ToString() + ".mp4";
-        nowVideoPlayer.Prepare();
-        nowVideoPlayer.frame = 25;
-        nowVideoPlayer.Play();
+        VideoReset();
+
+        if (num != 1)
+        {
+            nowVideoPlayer = tempVideoPlayer[num - 2];
+            nowVideo.texture = tempVideoPlayer[num - 2].texture;
+            monitorScreen.texture = nowVideo.texture;
+        }
+        else
+        {
+            nowVideoPlayer = VideoPlayers1[buttonNum - 1];
+            nowVideo.texture = VideoPlayers1[buttonNum - 1].texture;
+            monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
+        }
+    }
+
+    IEnumerator PrepareSetting()
+    {
+        yield return new WaitForSeconds(2);
+        if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_02.mp4"))
+        {
+            tempVideoPlayer[0].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_02.mp4";
+            tempVideoPlayer[0].Prepare();
+            tempVideoPlayer[0].Pause();
+            tempVideoPlayer[0].frame = 25;
+        }
+        Debug.Log("dddd");
+
+        StartCoroutine(PrepareSetting2());
+    }
+    IEnumerator PrepareSetting2()
+    {
+        yield return new WaitForSeconds(2);
+        if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_03.mp4"))
+        {
+            tempVideoPlayer[1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_03.mp4";
+            tempVideoPlayer[1].Prepare();
+            tempVideoPlayer[1].Pause();
+            tempVideoPlayer[1].frame = 25;
+        }
+        Debug.Log("dddd2");
+        StartCoroutine(PrepareSetting3());
+    }
+    IEnumerator PrepareSetting3()
+    {
+        yield return new WaitForSeconds(2);
+        if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4"))
+        {
+            tempVideoPlayer[2].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4";
+            tempVideoPlayer[2].Prepare();
+            tempVideoPlayer[2].Pause();
+            tempVideoPlayer[2].frame = 25;
+        }
+        Debug.Log("dddd3");
     }
 }
