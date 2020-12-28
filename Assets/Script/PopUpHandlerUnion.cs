@@ -22,8 +22,10 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     [Header("비디오 컨트롤 버튼")]
     public List<GameObject> VideoControlButtons; //비디오 컨드롤 버튼들
-    public GameObject mainVideoChangeImage;
-    public GameObject subVideoChangeImage;
+    public Image mainVideoChangeImage;
+    public Image subVideoChangeImage;
+    public List<GameObject> mainVideoChangeMask;
+    public List<GameObject> subVideoChangeMask;
 
     [Header("사이드 버튼")]
     public RectTransform sideMenu; // 사이드 버튼
@@ -68,6 +70,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     Sprite[] littleDisplay;
     Sprite[] MiniPopImages;
     Sprite[] multiPopImages;
+    Sprite[] videoChangeButtonImages;
 
     int[] videoMaxCount = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int[] videoCount = { 1, 1, 1, 1, 1, 1, 1, 1 };
@@ -134,6 +137,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         littleDisplay = Resources.LoadAll<Sprite>("PopDisplay");
         MiniPopImages = Resources.LoadAll<Sprite>("MultiMiniPopImages");
         multiPopImages = Resources.LoadAll<Sprite>("MultiPopImages");
+        videoChangeButtonImages = Resources.LoadAll<Sprite>("VideoChangeButton");
 
 
         for (int i = 0; i < miniBackButton.Count; i++)
@@ -188,6 +192,35 @@ public class PopUpHandlerUnion : MonoBehaviour
             return;
         }
 
+        switch (videoMaxCount[num - 1])
+        {
+            case 1:
+            case 2:
+            case 3:
+                for (int i = 0; i < mainVideoChangeMask.Count; i++)
+                {
+                    mainVideoChangeMask[i].SetActive(false);
+                }
+                mainVideoChangeMask[videoMaxCount[num - 1] - 1].SetActive(true);
+
+                for (int i = 0; i < subVideoChangeMask.Count; i++)
+                {
+                    subVideoChangeMask[i].SetActive(false);
+                }
+                subVideoChangeMask[videoMaxCount[num - 1] - 1].SetActive(true);
+                break;
+            default:
+                for (int i = 0; i < mainVideoChangeMask.Count; i++)
+                {
+                    mainVideoChangeMask[i].SetActive(false);
+                }
+                for (int i = 0; i < subVideoChangeMask.Count; i++)
+                {
+                    subVideoChangeMask[i].SetActive(false);
+                }
+                break;
+        }
+
         buttonNum = num;
 
         isMove = true;
@@ -217,6 +250,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
+        StopCoroutine(test);
         StartCoroutine(test);
 
         if (buttonNum == 2) // 멀티동영상 차례일때
@@ -233,11 +267,11 @@ public class PopUpHandlerUnion : MonoBehaviour
 
             if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
             {
-                mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
+                mainPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos); // 옮긴 창을 대기 위치로 이동
             }
             else if (subPop.transform.localPosition != waitPos)
             {
-                subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                subPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
             }
 
             multiPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting()); //해당하는 창 옮기기
@@ -251,11 +285,11 @@ public class PopUpHandlerUnion : MonoBehaviour
 
             if (multiPop.transform.localPosition != waitPos)
             {
-                multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                multiPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
             }
             else if (subPop.transform.localPosition != waitPos)
             {
-                subPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
+                subPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => subPop.transform.localPosition = waitPos);
             }
 
             mainPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting());
@@ -273,11 +307,11 @@ public class PopUpHandlerUnion : MonoBehaviour
 
             if (mainPop.transform.localPosition != waitPos)
             {
-                mainPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos);
+                mainPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => mainPop.transform.localPosition = waitPos);
             }
             if (multiPop.transform.localPosition != waitPos)
             {
-                multiPop.transform.DOLocalMoveY(-1200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
+                multiPop.transform.DOLocalMoveY(-2200, popDownTime).OnComplete(() => multiPop.transform.localPosition = waitPos);
             }
 
             subPop.transform.DOLocalMoveY(0, 1).OnComplete(() => OnCompleteSetting());
@@ -298,7 +332,10 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         VideoReset();
 
-        movedPop.transform.DOLocalMoveY(-1500, popDownTime)
+        mainVideoChangeImage.sprite = videoChangeButtonImages[0];
+        subVideoChangeImage.sprite = videoChangeButtonImages[0];
+
+        movedPop.transform.DOLocalMoveY(-2200, popDownTime)
             .OnComplete(() =>
             {
                 movedPop.transform.localPosition = waitPos;
@@ -396,6 +433,9 @@ public class PopUpHandlerUnion : MonoBehaviour
     {
         VideoReset();
 
+        mainVideoChangeImage.sprite = videoChangeButtonImages[num - 1];
+        subVideoChangeImage.sprite = videoChangeButtonImages[num - 1];
+
         if (num != 1)
         {
             nowVideoPlayer = tempVideoPlayer[num - 2];
@@ -412,7 +452,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     IEnumerator PrepareSetting()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(1);
         if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_02.mp4"))
         {
             tempVideoPlayer[0].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_02.mp4";
@@ -426,7 +466,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     IEnumerator PrepareSetting2()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(0.1f);
         if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_03.mp4"))
         {
             tempVideoPlayer[1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_03.mp4";
@@ -439,7 +479,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     }
     IEnumerator PrepareSetting3()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(0.1f);
         if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4"))
         {
             tempVideoPlayer[2].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4";
