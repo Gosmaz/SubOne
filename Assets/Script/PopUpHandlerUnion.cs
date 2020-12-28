@@ -217,7 +217,6 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
-        StopCoroutine(test);
         StartCoroutine(test);
 
         if (buttonNum == 2) // 멀티동영상 차례일때
@@ -299,7 +298,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         VideoReset();
 
-        movedPop.transform.DOLocalMoveY(-1200, popDownTime)
+        movedPop.transform.DOLocalMoveY(-1500, popDownTime)
             .OnComplete(() =>
             {
                 movedPop.transform.localPosition = waitPos;
@@ -316,8 +315,8 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         for (int i = 0; i < littleButtons.Length; i++)
         {
-            littleButtons[i].color = new Color(1, 1, 1, 170 / 255f); // 모든 버튼 색 초기화
-            bigButtons[i].color = new Color(1, 1, 1, 170 / 255f);
+            littleButtons[i].color = new Color(1, 1, 1, 140 / 255f); // 모든 버튼 색 초기화
+            bigButtons[i].color = new Color(1, 1, 1, 140 / 255f);
         }
 
     }
