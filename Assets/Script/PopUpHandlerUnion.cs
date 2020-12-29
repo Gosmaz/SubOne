@@ -153,8 +153,8 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     public void ColorChange(int num)
     {
-        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
-        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
+        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
     }
 
     public void Click(int num)
@@ -168,8 +168,8 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         buttonNum = num;
 
-        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
-        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f) // 0.5초동안 버튼을 밝게 만들기
+        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
+        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f) // 0.5초동안 버튼을 밝게 만들기
             .OnComplete(() =>
             {
                 isMove = false;
