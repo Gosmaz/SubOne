@@ -75,14 +75,15 @@ public class PopUpHandlerUnion : MonoBehaviour
     int[] videoMaxCount = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int[] videoCount = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-    string[] folders = { "01_CoustomerEnvironmentAnalysis", "02_StatusOfEquipment", "03_ConceptualDesign", "04_VirtualSimulation", "05_DetailModeling", "06_Test&Verification", "07_PaperCorrugatedCardboard", "08_EPSPacking" };
+    readonly string[] folders = { "01_CoustomerEnvironmentAnalysis", "02_StatusOfEquipment", "03_ConceptualDesign", "04_VirtualSimulation", "05_DetailModeling", "06_Test&Verification", "07_PaperCorrugatedCardboard", "08_EPSPacking" };
 
     Image clickedButton;
 
     Vector3 waitPos;
 
+    IEnumerator test;
+
     const float popDownTime = 0.7f;
-    readonly int[] multiVideoButtonX = new int[] { 0, 0, 510, 430, 350 };
 
     bool isMainTurn = true;
     bool isMove = false;
@@ -147,7 +148,13 @@ public class PopUpHandlerUnion : MonoBehaviour
         monitorMultiPopImage.gameObject.SetActive(false);
         monitorMiniPopImage.gameObject.SetActive(false);
 
-        test =PrepareSetting();
+        test = PrepareSetting();
+    }
+
+    public void ColorChange(int num)
+    {
+        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
+        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
     }
 
     public void Click(int num)
@@ -158,39 +165,27 @@ public class PopUpHandlerUnion : MonoBehaviour
         }
 
         isMove = true;
-        bool same = false;
-        clickedButton = EventSystem.current.currentSelectedGameObject.GetComponent<Image>(); // 클릭된 버튼의 이미지 가져오기
 
         buttonNum = num;
 
-        for (int i = 0; i < littleButtons.Length; i++)
-        {
-            if (clickedButton.name == littleButtons[i].name) // 만약 클릭한 버튼이 버튼 리스트에 있는 버튼이라면
+        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f) // 0.5초동안 버튼을 밝게 만들기
+            .OnComplete(() =>
             {
-                same = true;
-                bigButtons[i].DOColor(new Color(1, 1, 1, 0), 0.5f);
-                littleButtons[i].DOColor(new Color(1, 1, 1, 0), 0.5f) // 0.5초동안 버튼을 밝게 만들기
-                    .OnComplete(() =>
-                    {
-                        isMove = false;
-                        PopUp(buttonNum);
-                    });
-            }
-        }
-
-        if (!same)
-        {
-            PopUp(buttonNum);
-        }
+                isMove = false;
+                PopUp(buttonNum);
+            });
     }
 
-    IEnumerator test;
     public void PopUp(int num)
     {
         if (isMove)
         {
             return;
         }
+
+        mainVideoChangeImage.sprite = videoChangeButtonImages[0];
+        subVideoChangeImage.sprite = videoChangeButtonImages[0];
 
         switch (videoMaxCount[num - 1])
         {
@@ -251,6 +246,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
         StopCoroutine(test);
+        test = PrepareSetting();
         StartCoroutine(test);
 
         if (buttonNum == 2) // 멀티동영상 차례일때
@@ -350,11 +346,11 @@ public class PopUpHandlerUnion : MonoBehaviour
         bigButtonBackGround.gameObject.SetActive(true); //위 화면 버튼 대기창 키기
         sideMenu.transform.DOLocalMoveX(707, 0.5f); // 사이드 버튼 끄기
 
-        for (int i = 0; i < littleButtons.Length; i++)
-        {
-            littleButtons[i].color = new Color(1, 1, 1, 140 / 255f); // 모든 버튼 색 초기화
-            bigButtons[i].color = new Color(1, 1, 1, 140 / 255f);
-        }
+        //for (int i = 0; i < littleButtons.Length; i++)
+        //{
+        //    littleButtons[i].color = new Color(1, 1, 1, 140 / 255f); // 모든 버튼 색 초기화
+        //    bigButtons[i].color = new Color(1, 1, 1, 140 / 255f);
+        //}
 
     }
 
