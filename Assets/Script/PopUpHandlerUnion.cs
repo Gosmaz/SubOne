@@ -26,6 +26,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     public Image subVideoChangeImage;
     public List<GameObject> mainVideoChangeMask;
     public List<GameObject> subVideoChangeMask;
+    public Slider mainVideoTimeSlider;
 
     [Header("사이드 버튼")]
     public RectTransform sideMenu; // 사이드 버튼
@@ -62,7 +63,6 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     RawImage mainVideo;
     RawImage subVideo;
-    RawImage multiVideo;
     RawImage nowVideo;
 
     Sprite[] sideImage1; //사이드 버튼 이미지
@@ -73,11 +73,8 @@ public class PopUpHandlerUnion : MonoBehaviour
     Sprite[] videoChangeButtonImages;
 
     int[] videoMaxCount = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    int[] videoCount = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
     readonly string[] folders = { "01_CoustomerEnvironmentAnalysis", "02_StatusOfEquipment", "03_ConceptualDesign", "04_VirtualSimulation", "05_DetailModeling", "06_Test&Verification", "07_PaperCorrugatedCardboard", "08_EPSPacking" };
-
-    Image clickedButton;
 
     Vector3 waitPos;
 
@@ -87,6 +84,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     bool isMainTurn = true;
     bool isMove = false;
+    bool isClicking = false;
 
     int buttonNum;
 
@@ -107,7 +105,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             VideoPlayers1[i].url = "C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_01.mp4";
             VideoPlayers1[i].Prepare();
             VideoPlayers1[i].Pause();
-            VideoPlayers1[i].frame = 25;
+            VideoPlayers1[i].frame = 1;
         }
 
         for (int i = 0; i < VideoPlayers1.Count; i++)
@@ -126,6 +124,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
 
     }
+
 
     void Start()
     {
@@ -155,6 +154,12 @@ public class PopUpHandlerUnion : MonoBehaviour
     {
         littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
         bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+    }
+
+    public void FocusOutColor(int num)
+    {
+        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
+        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
     }
 
     public void Click(int num)
@@ -240,7 +245,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         {
             VideoPlayers1[buttonNum - 1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_01.mp4";
             VideoPlayers1[buttonNum - 1].Prepare();
-            VideoPlayers1[buttonNum - 1].frame = 25;
+            VideoPlayers1[buttonNum - 1].frame = 1;
         }
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
@@ -377,7 +382,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     public void VideoReset()
     {
         nowVideoPlayer.Pause();
-        nowVideoPlayer.frame = 25;
+        nowVideoPlayer.frame = 1;
     }
 
     public void MiniPopUp(int num)
@@ -454,7 +459,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[0].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_02.mp4";
             tempVideoPlayer[0].Prepare();
             tempVideoPlayer[0].Pause();
-            tempVideoPlayer[0].frame = 25;
+            tempVideoPlayer[0].frame = 1;
         }
         Debug.Log("dddd");
 
@@ -468,7 +473,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[1].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_03.mp4";
             tempVideoPlayer[1].Prepare();
             tempVideoPlayer[1].Pause();
-            tempVideoPlayer[1].frame = 25;
+            tempVideoPlayer[1].frame = 1;
         }
         Debug.Log("dddd2");
         StartCoroutine(PrepareSetting3());
@@ -481,8 +486,33 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[2].url = "C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4";
             tempVideoPlayer[2].Prepare();
             tempVideoPlayer[2].Pause();
-            tempVideoPlayer[2].frame = 25;
+            tempVideoPlayer[2].frame = 1;
         }
         Debug.Log("dddd3");
     }
+
+
+    private void Update()
+    {
+
+        if (nowVideoPlayer != null)
+        {
+            if (!Input.GetMouseButton(0) && !Input.GetMouseButtonUp(0) || EventSystem.current.currentSelectedGameObject.name != mainVideoTimeSlider.name)
+            {
+                mainVideoTimeSlider.value = ((float)nowVideoPlayer.frame / (int)nowVideoPlayer.frameCount);
+            }
+        }
+    }
+
+    public void SliderValueChange()
+    {
+        if(EventSystem.current.currentSelectedGameObject.name == mainVideoTimeSlider.name && Input.GetMouseButton(0))
+        {
+             nowVideoPlayer.frame = (int)(nowVideoPlayer.frameCount * mainVideoTimeSlider.value);
+
+            Debug.Log(EventSystem.current.currentSelectedGameObject);
+            Debug.Log(mainVideoTimeSlider.name + "222@");
+        }
+    }
+
 }
