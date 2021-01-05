@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Scripting;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -53,13 +54,16 @@ public class PopUpHandlerUnion : MonoBehaviour
     public Image multiPopImage;
     public Image miniPopImage;
     public GameObject miniPopButtons;
+    public GameObject miniExitButton;
     public List<Button> miniBackButton;
     public Image monitorMultiPopImage;
     public Image monitorMiniPopImage;
 
-    GameObject movedPop;
+    [Header("다른 스크립트에서 쓰는 것들")]
+    public VideoPlayer nowVideoPlayer;
 
-    VideoPlayer nowVideoPlayer;
+    
+    GameObject movedPop;
 
     RawImage mainVideo;
     RawImage subVideo;
@@ -84,7 +88,8 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     bool isMainTurn = true;
     bool isMove = false;
-    bool isClicking = false;
+
+    bool isSpeedup = false;
 
     int buttonNum;
 
@@ -114,15 +119,12 @@ public class PopUpHandlerUnion : MonoBehaviour
             {
                 if (!File.Exists("C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_0" + j.ToString() + ".mp4"))
                 {
-                    Debug.Log(j - 1);
                     videoMaxCount[i] = j - 1;
                     break;
                 }
 
             }
         }
-
-
     }
 
 
@@ -152,8 +154,11 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     public void ColorChange(int num)
     {
-        littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
-        bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+        if (Input.GetMouseButton(0))
+        {
+            littleButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+            bigButtons[num - 1].DOColor(new Color(1, 1, 1, 0), 0.5f);
+        }
     }
 
     public void FocusOutColor(int num)
@@ -172,6 +177,22 @@ public class PopUpHandlerUnion : MonoBehaviour
         isMove = true;
 
         buttonNum = num;
+
+        if (buttonNum % 2 == 0)
+        {
+            if (buttonNum == 2)
+            {
+                SetPopUp(multiPop);
+            }
+            else if (isMainTurn)
+            {
+                SetPopUp(subPop);
+            }
+            else
+            {
+                SetPopUp(mainPop);
+            }
+        }
 
         bigButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f);
         littleButtons[num - 1].DOColor(new Color(1, 1, 1, 140 / 255f), 0.5f) // 0.5초동안 버튼을 밝게 만들기
@@ -254,6 +275,8 @@ public class PopUpHandlerUnion : MonoBehaviour
         test = PrepareSetting();
         StartCoroutine(test);
 
+        Debug.Log(nowVideoPlayer.frame);
+
         if (buttonNum == 2) // 멀티동영상 차례일때
         {
             multiPopDisplay3.sprite = littleDisplay[buttonNum - 1];
@@ -327,6 +350,15 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     }
 
+    private void SetPopUp(GameObject pop)
+    {
+        if(buttonNum % 2 == 0)
+        {
+            pop.transform.localPosition = new Vector3(waitPos.x, -waitPos.y, waitPos.z);
+        }
+
+    }
+
     public void Home()
     {
         isMove = true;
@@ -348,14 +380,10 @@ public class PopUpHandlerUnion : MonoBehaviour
         {
             VideoControlButtons[i].SetActive(false); // 비디오 컨트롤창 끄기
         }
+        miniExitButton.SetActive(false);
         bigButtonBackGround.gameObject.SetActive(true); //위 화면 버튼 대기창 키기
         sideMenu.transform.DOLocalMoveX(707, 0.5f); // 사이드 버튼 끄기
 
-        //for (int i = 0; i < littleButtons.Length; i++)
-        //{
-        //    littleButtons[i].color = new Color(1, 1, 1, 140 / 255f); // 모든 버튼 색 초기화
-        //    bigButtons[i].color = new Color(1, 1, 1, 140 / 255f);
-        //}
 
     }
 
@@ -410,6 +438,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         miniPopImage.gameObject.SetActive(true);
         miniPopImage.sprite = MiniPopImages[num - 1];
         multiPopImage.sprite = multiPopImages[num];
+        miniExitButton.SetActive(true);
 
 
         monitorMiniPopImage.gameObject.SetActive(true);
@@ -425,6 +454,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         multiPopImage.sprite = multiPopImages[0];
         miniPopImage.gameObject.SetActive(false);
         miniPopButtons.SetActive(true);
+        miniExitButton.SetActive(false);
 
         monitorMultiPopImage.sprite = multiPopImages[0];
         monitorMiniPopImage.gameObject.SetActive(false);
@@ -449,6 +479,8 @@ public class PopUpHandlerUnion : MonoBehaviour
             nowVideo.texture = VideoPlayers1[buttonNum - 1].texture;
             monitorScreen.texture = VideoPlayers1[buttonNum - 1].texture;
         }
+
+        nowVideoPlayer.Play();
     }
 
     IEnumerator PrepareSetting()
@@ -461,7 +493,6 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[0].Pause();
             tempVideoPlayer[0].frame = 1;
         }
-        Debug.Log("dddd");
 
         StartCoroutine(PrepareSetting2());
     }
@@ -475,11 +506,11 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[1].Pause();
             tempVideoPlayer[1].frame = 1;
         }
-        Debug.Log("dddd2");
         StartCoroutine(PrepareSetting3());
     }
     IEnumerator PrepareSetting3()
     {
+        nowVideoPlayer.Play();
         yield return new WaitForSeconds(0.1f);
         if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4"))
         {
@@ -488,31 +519,22 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[2].Pause();
             tempVideoPlayer[2].frame = 1;
         }
-        Debug.Log("dddd3");
+
     }
 
-
-    private void Update()
+    public void VideoSpeed()
     {
-
-        if (nowVideoPlayer != null)
+        if (isSpeedup)
         {
-            if (!Input.GetMouseButton(0) && !Input.GetMouseButtonUp(0) || EventSystem.current.currentSelectedGameObject.name != mainVideoTimeSlider.name)
-            {
-                mainVideoTimeSlider.value = ((float)nowVideoPlayer.frame / (int)nowVideoPlayer.frameCount);
-            }
+            nowVideoPlayer.playbackSpeed = -1;
         }
+        else
+        {
+            nowVideoPlayer.playbackSpeed = 1;
+        }
+
+        isSpeedup = !isSpeedup;
     }
 
-    public void SliderValueChange()
-    {
-        if(EventSystem.current.currentSelectedGameObject.name == mainVideoTimeSlider.name && Input.GetMouseButton(0))
-        {
-             nowVideoPlayer.frame = (int)(nowVideoPlayer.frameCount * mainVideoTimeSlider.value);
-
-            Debug.Log(EventSystem.current.currentSelectedGameObject);
-            Debug.Log(mainVideoTimeSlider.name + "222@");
-        }
-    }
 
 }
