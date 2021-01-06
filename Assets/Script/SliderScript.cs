@@ -34,14 +34,11 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
     {
         isSlide = true;
         pop.nowVideoPlayer.Pause();
-
-        Debug.Log(pop.nowVideoPlayer.frameCount);
-        
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        float frame = (float)mainVideoTimeSlider.value * pop.nowVideoPlayer.frameCount;
+        float frame = Mathf.Round(mainVideoTimeSlider.value * 100) * 0.01f * pop.nowVideoPlayer.frameCount;
 
         pop.nowVideoPlayer.frame = (long)frame;
 
@@ -53,19 +50,17 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
     {
         yield return null;
 
-        if(num + 5 >= (long)pop.nowVideoPlayer.frameCount)
+        if(num + 3 >= (long)pop.nowVideoPlayer.frameCount)
         {
-            num -= (long)pop.nowVideoPlayer.frameCount - 5;
+            num -= (long)pop.nowVideoPlayer.frameCount - 3;
         }
 
-        if (pop.nowVideoPlayer.frame != num + 5)
+        while (pop.nowVideoPlayer.frame != num + 3 )
         {
-            StartCoroutine(Test(num));
+            yield return null;
         }
-        else
-        {
-            isSlide = false;
-        }
+
+        isSlide = false;
 
     }
 }

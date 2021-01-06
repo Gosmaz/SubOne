@@ -82,7 +82,9 @@ public class PopUpHandlerUnion : MonoBehaviour
 
     Vector3 waitPos;
 
-    IEnumerator test;
+    IEnumerator load2;
+    IEnumerator load3;
+    IEnumerator load4;
 
     const float popDownTime = 0.7f;
 
@@ -115,7 +117,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         for (int i = 0; i < VideoPlayers1.Count; i++)
         {
-            for (int j = 1; j <= 4; j++)
+            for (int j = 1; j <= 5; j++)
             {
                 if (!File.Exists("C:/VideoSource/" + folders[i] + "/0" + (i + 1).ToString() + "_0" + j.ToString() + ".mp4"))
                 {
@@ -125,6 +127,7 @@ public class PopUpHandlerUnion : MonoBehaviour
 
             }
         }
+
     }
 
 
@@ -149,7 +152,9 @@ public class PopUpHandlerUnion : MonoBehaviour
         monitorMultiPopImage.gameObject.SetActive(false);
         monitorMiniPopImage.gameObject.SetActive(false);
 
-        test = PrepareSetting();
+        load2 = PrepareSetting();
+        load3 = PrepareSetting2();
+        load4 = PrepareSetting3();
     }
 
     public void ColorChange(int num)
@@ -271,11 +276,13 @@ public class PopUpHandlerUnion : MonoBehaviour
 
         nowVideoPlayer = VideoPlayers1[buttonNum - 1];
 
-        StopCoroutine(test);
-        test = PrepareSetting();
-        StartCoroutine(test);
-
-        Debug.Log(nowVideoPlayer.frame);
+        StopCoroutine(load2);
+        StopCoroutine(load3);
+        StopCoroutine(load4);
+        load2 = PrepareSetting();
+        load3 = PrepareSetting2();
+        load4 = PrepareSetting3();
+        StartCoroutine(load2);
 
         if (buttonNum == 2) // 멀티동영상 차례일때
         {
@@ -494,7 +501,7 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[0].frame = 1;
         }
 
-        StartCoroutine(PrepareSetting2());
+        StartCoroutine(load3);
     }
     IEnumerator PrepareSetting2()
     {
@@ -506,11 +513,10 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[1].Pause();
             tempVideoPlayer[1].frame = 1;
         }
-        StartCoroutine(PrepareSetting3());
+        StartCoroutine(load4);
     }
     IEnumerator PrepareSetting3()
     {
-        nowVideoPlayer.Play();
         yield return new WaitForSeconds(0.1f);
         if (File.Exists("C:/VideoSource/" + folders[buttonNum - 1] + "/0" + buttonNum.ToString() + "_04.mp4"))
         {
@@ -520,6 +526,14 @@ public class PopUpHandlerUnion : MonoBehaviour
             tempVideoPlayer[2].frame = 1;
         }
 
+        if (videoMaxCount[buttonNum - 1] > 1)
+        {
+            while (!tempVideoPlayer[videoMaxCount[buttonNum - 1] - 2].isPrepared)
+            {
+                yield return null;
+            }
+        }
+        nowVideoPlayer.Play();
     }
 
     public void VideoSpeed()
