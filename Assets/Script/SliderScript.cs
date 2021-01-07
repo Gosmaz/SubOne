@@ -11,11 +11,16 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
 
     bool isSlide = false;
 
+    float frame;
+
+    IEnumerator valueCheck;
+
     private void Start()
     {
         pop = FindObjectOfType<PopUpHandlerUnion>();
         mainVideoTimeSlider = GetComponent<Slider>();
 
+        valueCheck = Test((long)frame);
     }
    
     private void Update()
@@ -38,12 +43,15 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        float frame = Mathf.Round(mainVideoTimeSlider.value * 100) * 0.01f * pop.nowVideoPlayer.frameCount;
+        frame = Mathf.Round(mainVideoTimeSlider.value * 100) * 0.01f * pop.nowVideoPlayer.frameCount;
 
         pop.nowVideoPlayer.frame = (long)frame;
 
         pop.nowVideoPlayer.Play();
-        StartCoroutine(Test((long)frame));
+
+        StopCoroutine(valueCheck);
+        valueCheck = Test((long)frame);
+        StartCoroutine(valueCheck);
     }
 
     IEnumerator Test(long num)
