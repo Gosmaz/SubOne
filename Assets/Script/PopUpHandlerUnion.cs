@@ -57,7 +57,6 @@ public class PopUpHandlerUnion : MonoBehaviour
     public GameObject miniExitButton;
     public List<Button> miniBackButton;
     public Image monitorMultiPopImage;
-    public Image monitorMiniPopImage;
 
     [Header("다른 스크립트에서 쓰는 것들")]
     public VideoPlayer nowVideoPlayer;
@@ -75,6 +74,7 @@ public class PopUpHandlerUnion : MonoBehaviour
     Sprite[] MiniPopImages;
     Sprite[] multiPopImages;
     Sprite[] videoChangeButtonImages;
+    Sprite[] BigPopImages;
 
     int[] videoMaxCount = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -143,6 +143,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         MiniPopImages = Resources.LoadAll<Sprite>("MultiMiniPopImages");
         multiPopImages = Resources.LoadAll<Sprite>("MultiPopImages");
         videoChangeButtonImages = Resources.LoadAll<Sprite>("VideoChangeButton");
+        BigPopImages = Resources.LoadAll<Sprite>("BigPopImages");
 
 
         for (int i = 0; i < miniBackButton.Count; i++)
@@ -150,7 +151,6 @@ public class PopUpHandlerUnion : MonoBehaviour
             miniBackButton[i].gameObject.SetActive(false);
         }
         monitorMultiPopImage.gameObject.SetActive(false);
-        monitorMiniPopImage.gameObject.SetActive(false);
 
         load2 = PrepareSetting();
         load3 = PrepareSetting2();
@@ -291,10 +291,9 @@ public class PopUpHandlerUnion : MonoBehaviour
             miniPopButtons.SetActive(true);
             miniPopImage.gameObject.SetActive(false);
             monitorMultiPopImage.gameObject.SetActive(true);
-            monitorMiniPopImage.gameObject.SetActive(false);
 
             multiPopImage.sprite = multiPopImages[0];
-            monitorMultiPopImage.sprite = multiPopImages[0];
+            monitorMultiPopImage.sprite = BigPopImages[0];
 
             if (mainPop.transform.localPosition != waitPos) //이전에 클릭된 창을 밑으로 옮기기
             {
@@ -448,9 +447,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         miniExitButton.SetActive(true);
 
 
-        monitorMiniPopImage.gameObject.SetActive(true);
-        monitorMiniPopImage.sprite = MiniPopImages[num - 1];
-        monitorMultiPopImage.sprite = multiPopImages[num];
+        monitorMultiPopImage.sprite = BigPopImages[num];
     }
     public void MiniBack()
     {
@@ -463,8 +460,7 @@ public class PopUpHandlerUnion : MonoBehaviour
         miniPopButtons.SetActive(true);
         miniExitButton.SetActive(false);
 
-        monitorMultiPopImage.sprite = multiPopImages[0];
-        monitorMiniPopImage.gameObject.SetActive(false);
+        monitorMultiPopImage.sprite = BigPopImages[0];
     }
 
     public void VideoChange(int num)

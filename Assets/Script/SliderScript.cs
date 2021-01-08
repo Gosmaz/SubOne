@@ -10,6 +10,7 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
     PopUpHandlerUnion pop;
 
     bool isSlide = false;
+    bool isLooping = false;
 
     float frame;
 
@@ -49,13 +50,18 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
 
         pop.nowVideoPlayer.Play();
 
-        StopCoroutine(valueCheck);
+        if (isLooping)
+        {
+            StopCoroutine(valueCheck);
+        }
         valueCheck = Test((long)frame);
         StartCoroutine(valueCheck);
     }
 
     IEnumerator Test(long num)
     {
+        isLooping = true;
+
         yield return null;
 
         if(num + 3 >= (long)pop.nowVideoPlayer.frameCount)
@@ -63,12 +69,13 @@ public class SliderScript : MonoBehaviour, IPointerUpHandler, IPointerDownHandle
             num -= (long)pop.nowVideoPlayer.frameCount - 3;
         }
 
-        while (pop.nowVideoPlayer.frame != num + 3 )
+        while (pop.nowVideoPlayer.frame != num + 3)
         {
             yield return null;
         }
 
         isSlide = false;
+        isLooping = false;
 
     }
 }
